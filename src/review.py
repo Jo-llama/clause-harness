@@ -1,16 +1,17 @@
 import json
+import sys
 from enum import Enum
 from pathlib import Path
 from typing import Literal
 
 import anthropic
+import pydantic
 from dotenv import load_dotenv
 from pydantic import BaseModel
 
-import sys
-
 GOLDEN_PATH = Path("data/golden.jsonl")
 MODEL = "claude-opus-4-8"
+PARSE_ATTEMPTS = 2
 
 
 class ClauseType(str, Enum):
@@ -35,6 +36,12 @@ class Finding(BaseModel):
 class ReviewResult(BaseModel):
     doc_id: str
     findings: list[Finding]
+
+
+# Imported here, after Finding/ReviewResult exist, because validate.py imports
+# them back from this module -- importing at the top of the file would be a
+# circular import.
+from validate import validate  # noqa: E402
 
 
 TAXONOMY = {
@@ -114,24 +121,55 @@ def load_record(path: Path, doc_id_prefix: str | None = None) -> dict:
     raise SystemExit(f"no record matching {doc_id_prefix!r} in {path}")
 
 
+def call_model(client: anthropic.Anthropic, source_text: str) -> ReviewResult | None:
+    for attempt in range(PARSE_ATTEMPTS):
+        try:
+            response = client.messages.parse(
+                model=MODEL,
+                max_tokens=8192,
+                system=build_system_prompt(),
+                messages=[{"role": "user", "content": source_text}],
+                output_format=ReviewResult,
+            )
+            return response.content[0].parsed_output
+        except (pydantic.ValidationError, ValueError):
+            if attempt == PARSE_ATTEMPTS - 1:
+                return None
+    return None
+
+
 def main():
     load_dotenv()
     client = anthropic.Anthropic()
 
     record = load_record(GOLDEN_PATH, sys.argv[1] if len(sys.argv) > 1 else None)
 
-    response = client.messages.parse(
-        model=MODEL,
-        max_tokens=8192,
-        system=build_system_prompt(),
-        messages=[{"role": "user", "content": record["source_text"]}],
-        output_format=ReviewResult,
-    )
+    result = call_model(client, record["source_text"])
 
-    result = response.content[0].parsed_output
+    if result is None:
+        print(
+            json.dumps(
+                {
+                    "doc_id": record["doc_id"],
+                    "verdict": "escalate",
+                    "trigger": "schema_or_parse_failure",
+                },
+                indent=2,
+            )
+        )
+        return
+
     result.doc_id = record["doc_id"]
 
-    print(result.model_dump_json(indent=2))
+    verdicts = validate(result, record["source_text"])
+    output = {
+        "doc_id": result.doc_id,
+        "findings": [
+            {**v.finding.model_dump(), "verdict": v.verdict, "trigger": v.trigger}
+            for v in verdicts
+        ],
+    }
+    print(json.dumps(output, indent=2))
 
 
 if __name__ == "__main__":
