@@ -24,3 +24,11 @@ Target: showable within one week.
 - Standard library first; a dependency needs justification
 - No premature abstraction — duplicate twice before extracting
 - Every file should be explainable in an interview in 60 seconds
+
+## Escalation labelling rule (golden set)
+escalate = true when a lawyer must see the clause before it can be relied on:
+- the finding depends on carve-outs, exceptions, or cross-references
+- the value is a formula rather than a stated figure
+- multiple jurisdictions / caps are named
+- the clause is ambiguous or internally inconsistent
+escalate = false when the finding is stated plainly and self-contained.
