@@ -30,6 +30,23 @@ RAW = Path("data/raw/CUADv1.json")
 OUT = Path("data/golden.jsonl")
 
 
+FURNITURE = [
+    re.compile(r"^\s*Page \d+ of \d+\s*$", re.M),
+    re.compile(r"^\s*Source: .{0,100}\d{1,2}/\d{1,2}/\d{4}\s*$", re.M),
+    re.compile(r"^\s*\d{1,4}\s*$", re.M),
+]
+
+
+def strip_furniture(text: str) -> str:
+    """Remove page numbers and EDGAR footers that appear mid-sentence in extracted text.
+
+    Must run on raw text, before whitespace normalization, while line
+    structure still exists — the bare-number rule is only safe line-anchored.
+    """
+    for pattern in FURNITURE:
+        text = pattern.sub("", text)
+    return text
+
 def normalize(text: str) -> str:
     """Collapse whitespace so verbatim comparisons survive PDF extraction noise."""
     return re.sub(r"\s+", " ", text).strip()
@@ -49,7 +66,7 @@ def category_of(question: str) -> str | None:
 
 def extract_contract(entry: dict) -> dict | None:
     para = entry["paragraphs"][0]
-    source_text = para["context"]
+    source_text = strip_furniture(para["context"])
 
     labels = {}
     for qa in para["qas"]:
@@ -59,7 +76,7 @@ def extract_contract(entry: dict) -> dict | None:
         spans = [a["text"] for a in qa.get("answers", []) if a.get("text")]
         labels[key] = {
             "present": bool(spans) and not qa.get("is_impossible", False),
-            "evidence": [normalize(s) for s in spans],
+            "evidence": [normalize(strip_furniture(s)) for s in spans],
         }
 
     # Skip anything where CUAD didn't cover all eight — keeps the eval honest.
