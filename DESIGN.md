@@ -100,6 +100,35 @@ Using exact match here would produce a metric that tracks annotation style
 rather than model quality — and prompt iteration would then optimize against
 noise.
 
+## Asymmetry: false positives vs false negatives
+
+The validators are not evenly matched across the two error types.
+
+**False positives** — a clause reported present that isn't there — are well
+defended. Trigger 2 requires the cited evidence to appear verbatim in the
+source, so a fabricated or altered citation is caught deterministically.
+
+**False negatives** — a clause missed entirely — are harder. On `present:
+false` the `evidence` field is empty, so there is nothing for trigger 2 to
+check. A missed clause produces output that is confident, well-reasoned,
+schema-valid, and unverifiable by string comparison.
+
+Coverage for false negatives comes from two weaker signals:
+
+- **Trigger 3 (low confidence).** Partial but real. On CARDAX the model missed
+  an exclusive licence grant because the section headed "Exclusivity" was
+  redacted to `[***]`; it reported absent but flagged itself `low`, and the
+  finding escalated. Self-report works when the model can tell its evidence is
+  inadequate — not when it is confidently wrong.
+- **Trigger 4 (two-pass disagreement).** The only signal that fires when the
+  model is confidently wrong, which makes it load-bearing rather than
+  optional.
+
+Consequence for metrics: **precision and recall are reported separately, never
+folded into a single accuracy figure.** They rest on different amounts of
+validation and conflating them would overstate how much of the output is
+actually checked.
+
 ## Metrics
 
 The eval reports, per category and in aggregate:

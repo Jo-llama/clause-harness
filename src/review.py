@@ -7,6 +7,8 @@ import anthropic
 from dotenv import load_dotenv
 from pydantic import BaseModel
 
+import sys
+
 GOLDEN_PATH = Path("data/golden.jsonl")
 MODEL = "claude-opus-4-8"
 
@@ -94,19 +96,29 @@ evidence verbatim: copy the text exactly as it appears in the contract, do not
 correct, shorten, paraphrase, or summarize it. If absent, leave evidence as an
 empty string.
 
+Do not quote contract text in reasoning. All quoted text belongs in evidence.
+Describe your reasoning in your own words.
+
+Contract text may contain [***] redactions. Do not infer clause content from a section heading whose body is redacted; 
+treat the evidence as unavailable and lower your confidence.
+
 Return exactly one finding per clause type -- eight findings total."""
 
 
-def load_first_record(path: Path) -> dict:
+def load_record(path: Path, doc_id_prefix: str | None = None) -> dict:
     with open(path) as f:
-        return json.loads(f.readline())
+        for line in f:
+            record = json.loads(line)
+            if doc_id_prefix is None or record["doc_id"].startswith(doc_id_prefix):
+                return record
+    raise SystemExit(f"no record matching {doc_id_prefix!r} in {path}")
 
 
 def main():
     load_dotenv()
     client = anthropic.Anthropic()
 
-    record = load_first_record(GOLDEN_PATH)
+    record = load_record(GOLDEN_PATH, sys.argv[1] if len(sys.argv) > 1 else None)
 
     response = client.messages.parse(
         model=MODEL,
