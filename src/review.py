@@ -1,47 +1,17 @@
 import json
 import sys
-from enum import Enum
 from pathlib import Path
-from typing import Literal
 
 import anthropic
 import pydantic
 from dotenv import load_dotenv
-from pydantic import BaseModel
+
+from schema import ClauseType, ReviewResult
+from validate import validate
 
 GOLDEN_PATH = Path("data/golden.jsonl")
 MODEL = "claude-opus-4-8"
 PARSE_ATTEMPTS = 2
-
-
-class ClauseType(str, Enum):
-    GOVERNING_LAW = "governing_law"
-    CAP_ON_LIABILITY = "cap_on_liability"
-    UNCAPPED_LIABILITY = "uncapped_liability"
-    TERMINATION_FOR_CONVENIENCE = "termination_for_convenience"
-    ANTI_ASSIGNMENT = "anti_assignment"
-    CHANGE_OF_CONTROL = "change_of_control"
-    EXCLUSIVITY = "exclusivity"
-    NON_COMPETE = "non_compete"
-
-
-class Finding(BaseModel):
-    clause_type: ClauseType
-    present: bool
-    evidence: str
-    reasoning: str
-    confidence: Literal["high", "medium", "low"]
-
-
-class ReviewResult(BaseModel):
-    doc_id: str
-    findings: list[Finding]
-
-
-# Imported here, after Finding/ReviewResult exist, because validate.py imports
-# them back from this module -- importing at the top of the file would be a
-# circular import.
-from validate import validate  # noqa: E402
 
 
 TAXONOMY = {
@@ -108,6 +78,11 @@ Describe your reasoning in your own words.
 
 Contract text may contain [***] redactions. Do not infer clause content from a section heading whose body is redacted; 
 treat the evidence as unavailable and lower your confidence.
+
+Quote one contiguous passage. Never use "..." or any other marker to join
+separated text. If the relevant provisions are not contiguous,
+quote the single most representative passage and describe the rest
+in your reasoning.
 
 Return exactly one finding per clause type -- eight findings total."""
 

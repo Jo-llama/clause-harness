@@ -3,7 +3,7 @@ from typing import Literal
 
 from pydantic import BaseModel
 
-from review import Finding, ReviewResult
+from schema import Finding, ReviewResult, strip_furniture
 
 Trigger = Literal["evidence_not_grounded", "low_confidence", "reasoning_contains_quote"]
 
@@ -31,8 +31,11 @@ def reasoning_quotes_contract(reasoning: str, normalized_source: str) -> bool:
 
 
 def validate_finding(finding: Finding, normalized_source: str) -> FindingVerdict:
-    if finding.present and normalize(finding.evidence) not in normalized_source:
-        return FindingVerdict(finding=finding, verdict="escalate", trigger="evidence_not_grounded")
+    if finding.present:
+        if "..." in finding.evidence or "…" in finding.evidence:
+            return FindingVerdict(finding=finding, verdict="escalate", trigger="elided_evidence")
+        if normalize(strip_furniture(finding.evidence)) not in normalized_source:
+            return FindingVerdict(finding=finding, verdict="escalate", trigger="evidence_not_grounded")
     if finding.confidence == "low":
         return FindingVerdict(finding=finding, verdict="escalate", trigger="low_confidence")
     if reasoning_quotes_contract(finding.reasoning, normalized_source):
@@ -41,5 +44,5 @@ def validate_finding(finding: Finding, normalized_source: str) -> FindingVerdict
 
 
 def validate(result: ReviewResult, source_text: str) -> list[FindingVerdict]:
-    normalized_source = normalize(source_text)
+    normalized_source = normalize(strip_furniture(source_text))
     return [validate_finding(finding, normalized_source) for finding in result.findings]

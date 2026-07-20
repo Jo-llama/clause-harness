@@ -12,7 +12,12 @@ import argparse
 import json
 import random
 import re
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
+
+from schema import strip_furniture  # noqa: E402
 
 # Maps our schema's clause_type -> the label as it appears in CUAD questions.
 CATEGORIES = {
@@ -29,23 +34,6 @@ CATEGORIES = {
 RAW = Path("data/raw/CUADv1.json")
 OUT = Path("data/golden.jsonl")
 
-
-FURNITURE = [
-    re.compile(r"^\s*Page \d+ of \d+\s*$", re.M),
-    re.compile(r"^\s*Source: .{0,100}\d{1,2}/\d{1,2}/\d{4}\s*$", re.M),
-    re.compile(r"^\s*\d{1,4}\s*$", re.M),
-]
-
-
-def strip_furniture(text: str) -> str:
-    """Remove page numbers and EDGAR footers that appear mid-sentence in extracted text.
-
-    Must run on raw text, before whitespace normalization, while line
-    structure still exists — the bare-number rule is only safe line-anchored.
-    """
-    for pattern in FURNITURE:
-        text = pattern.sub("", text)
-    return text
 
 def normalize(text: str) -> str:
     """Collapse whitespace so verbatim comparisons survive PDF extraction noise."""

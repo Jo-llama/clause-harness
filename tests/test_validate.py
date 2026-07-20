@@ -1,4 +1,4 @@
-from review import ClauseType, Finding, ReviewResult
+from schema import ClauseType, Finding, ReviewResult, strip_furniture
 from validate import normalize, validate, validate_finding
 
 SOURCE = (
@@ -89,6 +89,18 @@ def test_trigger_priority_confidence_before_quote():
     )
     verdict = validate_finding(finding, normalize(SOURCE))
     assert verdict.trigger == "low_confidence"
+
+
+def test_evidence_with_mid_sentence_page_furniture_matches_stripped_source():
+    raw = (
+        "This Agreement shall be governed by the laws\nPage 12 of 40\nof the "
+        "State of Delaware."
+    )
+    source = strip_furniture(raw) + " The parties agree to keep this arrangement confidential."
+    finding = make_finding(evidence=raw)
+    result = ReviewResult(doc_id="doc-1", findings=[finding])
+    verdicts = validate(result, source)
+    assert verdicts[0].verdict == "auto_pass"
 
 
 def test_validate_runs_over_all_findings_in_result():
