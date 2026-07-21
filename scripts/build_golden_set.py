@@ -33,6 +33,7 @@ CATEGORIES = {
 
 RAW = Path("data/raw/CUADv1.json")
 OUT = Path("data/golden.jsonl")
+OVERRIDES = Path("data/overrides.jsonl")
 
 
 def normalize(text: str) -> str:
@@ -76,6 +77,31 @@ def extract_contract(entry: dict) -> dict | None:
         "source_text": source_text,
         "labels": labels,
     }
+
+
+def load_overrides(path: Path) -> list[dict]:
+    """Hand-reviewed corrections to CUAD's labels. See TAXONOMY.md, Overrides."""
+    if not path.exists():
+        return []
+    with path.open(encoding="utf-8") as f:
+        return [json.loads(line) for line in f if line.strip()]
+
+
+def apply_overrides(records: list[dict], overrides: list[dict]) -> int:
+    """Apply overrides in place; return how many found a matching record."""
+    by_doc_id = {r["doc_id"]: r for r in records}
+    applied = 0
+    for override in overrides:
+        record = by_doc_id.get(override["doc_id"])
+        if record is None:
+            continue
+        label = record["labels"].get(override["clause_type"])
+        if label is None:
+            continue
+        label["present"] = override["present"]
+        label["notes"] = override["note"]
+        applied += 1
+    return applied
 
 
 def verify(record: dict) -> list[str]:
@@ -129,6 +155,9 @@ def main() -> None:
 
     selected.extend(leftover[: args.n - len(selected)])
 
+    overrides = load_overrides(OVERRIDES)
+    overrides_applied = apply_overrides(selected, overrides)
+
     problems = [p for c in selected for p in verify(c)]
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
@@ -137,6 +166,7 @@ def main() -> None:
             f.write(json.dumps(c, ensure_ascii=False) + "\n")
 
     print(f"wrote {len(selected)} contracts to {OUT}")
+    print(f"applied {overrides_applied}/{len(overrides)} overrides from {OVERRIDES}")
     print(f"{'category':<32} {'present':>8} {'absent':>8}")
     for k in CATEGORIES:
         p = sum(c["labels"][k]["present"] for c in selected)

@@ -5,9 +5,17 @@ from pydantic import BaseModel
 
 from schema import Finding, ReviewResult, strip_furniture
 
-Trigger = Literal["evidence_not_grounded", "low_confidence", "reasoning_contains_quote"]
+Trigger = Literal[
+    "elided_evidence", "evidence_not_grounded", "low_confidence", "reasoning_contains_quote", "redacted_evidence"
+]
 
-QUOTE_PATTERN = re.compile(r'["“]([^"”]+)["”]')
+QUOTE_PATTERNS = [
+    re.compile(r'"([^"]+)"'),
+    re.compile(r"“([^”]+)”"),
+    re.compile(r"'([^']+)'"),
+    re.compile(r"‘([^’]+)’"),
+]
+MIN_QUOTE_WORDS = 8
 
 
 class FindingVerdict(BaseModel):
@@ -21,12 +29,13 @@ def normalize(text: str) -> str:
 
 
 def reasoning_quotes_contract(reasoning: str, normalized_source: str) -> bool:
-    for match in QUOTE_PATTERN.finditer(reasoning):
-        quoted = match.group(1).strip()
-        if " " not in quoted:
-            continue  # a single quoted word reads as a defined term, not a lifted clause
-        if normalize(quoted) in normalized_source:
-            return True
+    for pattern in QUOTE_PATTERNS:
+        for match in pattern.finditer(reasoning):
+            quoted = match.group(1).strip()
+            if len(quoted.split()) <= MIN_QUOTE_WORDS:
+                continue  # short quotes read as defined terms, not lifted clauses
+            if normalize(quoted) in normalized_source:
+                return True
     return False
 
 
@@ -36,6 +45,8 @@ def validate_finding(finding: Finding, normalized_source: str) -> FindingVerdict
             return FindingVerdict(finding=finding, verdict="escalate", trigger="elided_evidence")
         if normalize(strip_furniture(finding.evidence)) not in normalized_source:
             return FindingVerdict(finding=finding, verdict="escalate", trigger="evidence_not_grounded")
+        if finding.present and "[***]" in finding.evidence:
+            return FindingVerdict(finding=finding, verdict="escalate", trigger="redacted_evidence")
     if finding.confidence == "low":
         return FindingVerdict(finding=finding, verdict="escalate", trigger="low_confidence")
     if reasoning_quotes_contract(finding.reasoning, normalized_source):

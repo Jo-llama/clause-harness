@@ -1,0 +1,61 @@
+{
+  "doc_id": "CARDAX,INC_08_19_2014-EX-10.1-COLLABORATION AGREEMENT",
+  "findings": [
+    {
+      "clause_type": "governing_law",
+      "present": true,
+      "evidence": "This Agreement shall be governed by and interpreted in accordance under the laws of the State of New York.",
+      "reasoning": "Section 11.1 expressly designates New York law as governing the agreement.",
+      "confidence": "high"
+    },
+    {
+      "clause_type": "cap_on_liability",
+      "present": true,
+      "evidence": "IN NO EVENT SHALL EITHER PARTY BE LIABLE FOR ANY CONSEQUENTIAL, SPECIAL OR PUNITIVE DAMAGES OR LOST PROFITS ARISING UNDER OR RELATING TO THIS AGREEMENT. Except in the event of (i) a Party's gross negligence or willful misconduct and/or (ii) a Party's breach of its confidentiality obligation, the total liability of one Party to the other Party (and its Affiliates) arising out of or in connection with this Agreement or the Products, whether in contract, tort (including negligence), statute or otherwise, shall, to the maximum extent permitted by Applicable Law, be limited to the amount of revenues it receives under this Agreement.",
+      "reasoning": "Section 8.4 excludes consequential/special/punitive damages and caps total liability at revenues received, which are limitations on liability.",
+      "confidence": "high"
+    },
+    {
+      "clause_type": "uncapped_liability",
+      "present": true,
+      "evidence": "Except in the event of (i) a Party's gross negligence or willful misconduct and/or (ii) a Party's breach of its confidentiality obligation, the total liability of one Party to the other Party (and its Affiliates) arising out of or in connection with this Agreement or the Products, whether in contract, tort (including negligence), statute or otherwise, shall, to the maximum extent permitted by Applicable Law, be limited to the amount of revenues it receives under this Agreement.",
+      "reasoning": "The cap expressly carves out gross negligence, willful misconduct, and breach of confidentiality, meaning liability for those categories is not limited.",
+      "confidence": "high"
+    },
+    {
+      "clause_type": "termination_for_convenience",
+      "present": false,
+      "evidence": "",
+      "reasoning": "The termination provisions all require a trigger — breach, bankruptcy, force majeure, or development/commercial non-viability. None permits termination at will without cause on notice.",
+      "confidence": "medium"
+    },
+    {
+      "clause_type": "anti_assignment",
+      "present": true,
+      "evidence": "Neither Party may assign this Agreement without the prior written consent of the other Party; provided, however that either Party may assign in connection with a merger or sale of all or substantially all of its stock or assets, provided the assignee agrees to be bound by all of the terms and conditions of this Agreement.",
+      "reasoning": "Section 11.3 restricts assignment without the other party's prior written consent, subject to an exception for mergers/asset sales.",
+      "confidence": "high"
+    },
+    {
+      "clause_type": "change_of_control",
+      "present": false,
+      "evidence": "",
+      "reasoning": "The only reference to mergers or sales of stock/assets is within the assignment provision, permitting assignment in that context. There is no separate right to terminate or consent right triggered by a change of control.",
+      "confidence": "medium"
+    },
+    {
+      "clause_type": "exclusivity",
+      "present": false,
+      "evidence": "",
+      "reasoning": "Section 4 titled Exclusivity is entirely redacted ([***]), so no exclusivity terms can be verified from the visible text.",
+      "confidence": "low"
+    },
+    {
+      "clause_type": "non_compete",
+      "present": false,
+      "evidence": "",
+      "reasoning": "No provision restricting either party from competing with the other appears in the visible text. Restrictions relate to confidentiality and IP, which do not qualify.",
+      "confidence": "medium"
+    }
+  ]
+}

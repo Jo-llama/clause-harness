@@ -1,0 +1,61 @@
+{
+  "doc_id": "BERKELEYLIGHTS,INC_06_26_2020-EX-10.12-COLLABORATION AGREEMENT",
+  "findings": [
+    {
+      "clause_type": "governing_law",
+      "present": true,
+      "evidence": "Governing Law. This Agreement will be construed and interpreted in accordance with the laws of the State of Delaware, without regard to any choice of law provision.",
+      "reasoning": "Section 14.5.1 expressly designates Delaware law as governing the interpretation of the Agreement.",
+      "confidence": "high"
+    },
+    {
+      "clause_type": "cap_on_liability",
+      "present": true,
+      "evidence": "TO THE GREATEST EXTENT PERMITTED UNDER APPLICABLE LAW, IN NO EVENT WILL A PARTY'S AGGREGATE LIABILITY (ABOVE AMOUNTS ACTUALLY PAID OR REIMBURSED BY SUCH PARTY'S INSURER (TO THE EXTENT NOT SELF-INSURED)) FOR A CLAIM ARISING OUT OF OR RELATED TO THIS AGREEMENT UNDER ANY LEGAL OR EQUITABLE THEORY, INCLUDING BREACH OF CONTRACT, TORT (INCLUDING NEGLIGENCE), STRICT LIABILITY, AND OTHERWISE EXCEED [***]",
+      "reasoning": "Section 11.7 establishes an aggregate monetary ceiling on liability (the dollar figure is redacted), and Section 11.6 additionally waives consequential and similar damages. Both constitute a limitation on liability.",
+      "confidence": "high"
+    },
+    {
+      "clause_type": "uncapped_liability",
+      "present": true,
+      "evidence": "EXCEPT THAT (A) SUCH LIMITATION SHALL NOT APPLY TO (I) A PARTY'S BREACH OF ARTICLE 10 (CONFIDENTIALITY), [***], (V) A PARTY'S FRAUD, GROSS NEGLIGENCE OR WILLFUL MISCONDUCT OR (VI) A PARTY'S INDEMNIFICATION OBLIGATIONS UNDER ARTICLE 12 (INDEMNIFICATION; INSURANCE) AND (B) SUCH LIMITATION ON LIABILITY SHALL NOT INCLUDE ANY AMOUNTS ACCRUED AND ACTUALLY OWED PURSUANT TO THE TERMS OF THIS AGREEMENT.",
+      "reasoning": "Section 11.7 expressly carves out breach of confidentiality, fraud, gross negligence, willful misconduct, and indemnification obligations from the liability cap, and Section 11.6 mirrors this. These categories are not subject to the cap.",
+      "confidence": "high"
+    },
+    {
+      "clause_type": "termination_for_convenience",
+      "present": true,
+      "evidence": "During the Term following the end of the second (2nd) Contract Year, Ginkgo may elect, upon written notice to BLI, to buy- down its remaining financial obligations under the Full Purchase Target (the \"Buy-Down Election\") by making a one-time payment to BLI in the amount of the Buy-Down Amount. In the event Ginkgo notifies BLI of its Buy-Down Election as set forth in this Section 7.3 (Buy-Down Election), then, upon Ginkgo's payment of the Buy-Down Amount to BLI within [***] ([***]) days of Ginkgo's Buy-Down Election, this Agreement shall automatically terminate",
+      "reasoning": "The Buy-Down Election allows Ginkgo, at its election and without cause, to terminate the Agreement by making a payment. This functions as a termination for convenience mechanism for Ginkgo, not tied to any breach or trigger event.",
+      "confidence": "medium"
+    },
+    {
+      "clause_type": "anti_assignment",
+      "present": true,
+      "evidence": "Neither Party may assign or otherwise transfer this Agreement or any rights hereunder, without the prior written consent of the other Party; provided that either Party may assign or otherwise transfer this Agreement or any rights hereunder (a) to a wholly-owned subsidiary of such Party or (b) in connection with the transfer or sale of all or substantially all of the business or assets of such Party related to the subject matter of this Agreement",
+      "reasoning": "Section 14.4.1 restricts assignment absent the other party's prior written consent, subject to limited exceptions. This is a standard anti-assignment provision.",
+      "confidence": "high"
+    },
+    {
+      "clause_type": "change_of_control",
+      "present": true,
+      "evidence": "in the event that a Change in Control of an existing (as of the Effective Date or at any time during the Term) Third Party BLI customer results in such customer being controlled [***] following the date such Third Party became a BLI customer, BLI shall promptly notify Ginkgo in writing of such Change in Control (in no event later than [***] ([***]) days after BLI first learns of such Change in Control",
+      "reasoning": "Section 6.2.1 contains rights and notification obligations arising from a Change in Control of a third party BLI customer, granting Ginkgo options. \"Change in Control\" is also a defined term (Section 1.26). This qualifies as a change-of-control provision, though much detail is redacted.",
+      "confidence": "medium"
+    },
+    {
+      "clause_type": "exclusivity",
+      "present": true,
+      "evidence": "During the Term and for a period of [***] ([***]) months following the Term of this Agreement, other than pursuant to Sections 13.3.2 (Effects of Termination Based Upon Ginkgo's Buy-Down Election) or 13.3.3 (Effects of Termination Based Upon an Uncured Ginkgo Breach, Insolvency or Force Majeure Event), BLI shall not, and shall cause its Affiliates not to, directly or indirectly, itself or with or through a Third Party, develop, configure, customize, license, sell, provide or otherwise give access to the Beacon Platform or any [***] to, [***] or its Affiliates for any use",
+      "reasoning": "Section 6.2.1 restricts BLI from providing the Beacon Platform to certain (redacted) parties, effectively granting Ginkgo exclusivity within a defined field. This is an exclusivity undertaking.",
+      "confidence": "medium"
+    },
+    {
+      "clause_type": "non_compete",
+      "present": true,
+      "evidence": "During the Term and for a period of [***] ([***]) months following the Term of this Agreement ... BLI shall not, and shall cause its Affiliates not to, directly or indirectly, itself or with or through a Third Party, develop, configure, customize, license, sell, provide or otherwise give access to the Beacon Platform or any [***] to, [***] or its Affiliates for any use",
+      "reasoning": "Section 6.2.1 (Restrictions on BLI) restricts BLI from dealing with certain third parties (redacted) during and after the Term, which operates as a restraint on competition rather than a pure confidentiality/IP provision. It survives for a post-term period, characteristic of a non-compete.",
+      "confidence": "medium"
+    }
+  ]
+}

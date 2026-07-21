@@ -32,6 +32,26 @@ def test_escalates_on_ungrounded_evidence():
     assert verdict.trigger == "evidence_not_grounded"
 
 
+def test_escalates_on_elided_evidence():
+    finding = make_finding(
+        evidence="This Agreement shall be governed by the laws ... of the State of Delaware."
+    )
+    verdict = validate_finding(finding, normalize(SOURCE))
+    assert verdict.verdict == "escalate"
+    assert verdict.trigger == "elided_evidence"
+
+
+def test_escalates_on_redacted_evidence():
+    source = (
+        "This Agreement shall be governed by the laws of the State of "
+        "[***] and no other jurisdiction."
+    )
+    finding = make_finding(evidence=source)
+    verdict = validate_finding(finding, normalize(source))
+    assert verdict.verdict == "escalate"
+    assert verdict.trigger == "redacted_evidence"
+
+
 def test_absent_finding_skips_grounding_check():
     finding = make_finding(present=False, evidence="")
     verdict = validate_finding(finding, normalize(SOURCE))
@@ -51,6 +71,29 @@ def test_escalates_when_reasoning_quotes_contract_text():
     verdict = validate_finding(finding, normalize(SOURCE))
     assert verdict.verdict == "escalate"
     assert verdict.trigger == "reasoning_contains_quote"
+
+
+def test_escalates_when_reasoning_single_quotes_contract_text():
+    finding = make_finding(
+        reasoning=(
+            "The main body also states 'shall be governed by the laws of the "
+            "State of Delaware' among other provisions."
+        )
+    )
+    verdict = validate_finding(finding, normalize(SOURCE))
+    assert verdict.verdict == "escalate"
+    assert verdict.trigger == "reasoning_contains_quote"
+
+
+def test_apostrophes_and_short_quoted_terms_do_not_trigger():
+    finding = make_finding(
+        reasoning=(
+            "The clause protects both parties' rights and the vendor's "
+            "discretion, and separately defines 'Buyer' as the purchasing party."
+        )
+    )
+    verdict = validate_finding(finding, normalize(SOURCE))
+    assert verdict.verdict == "auto_pass"
 
 
 def test_single_quoted_word_in_reasoning_is_not_a_quote_trigger():

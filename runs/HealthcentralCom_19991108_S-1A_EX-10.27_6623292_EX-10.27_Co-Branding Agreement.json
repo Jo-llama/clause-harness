@@ -1,0 +1,61 @@
+{
+  "doc_id": "HealthcentralCom_19991108_S-1A_EX-10.27_6623292_EX-10.27_Co-Branding Agreement",
+  "findings": [
+    {
+      "clause_type": "governing_law",
+      "present": true,
+      "evidence": "This Agreement shall be governed by and interpreted and enforced in accordance with the laws of the Province of Ontario and the Parties agree to abide by the jurisdiction of the Courts of Ontario.",
+      "reasoning": "Section 21 clearly specifies Ontario law as governing.",
+      "confidence": "high"
+    },
+    {
+      "clause_type": "cap_on_liability",
+      "present": true,
+      "evidence": "UNDER NO CIRCUMSTANCES SHALL EITHER PARTY BE LIABLE TO THE OTHER PARTY WITH RESPECT TO THE SUBJECT MATTER OF THIS AGREEMENT UNDER ANY CONTRACT, NEGLIGENCE,\n\nSTRICT LIABILITY, TORT OR OTHER LEGAL OR EQUITABLE THEORY FOR ANY INDIRECT, INCIDENTAL, CONSEQUENTIAL, SPECIAL OR EXEMPLARY DAMAGES (INCLUDING, WITHOUT LIMITATION, LOSS OF REVENUE OR GOODWILL OR ANTICIPATED PROFITS OR LOST BUSINESS), EVEN IF SUCH PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.",
+      "reasoning": "Section 15 excludes indirect, incidental, consequential, special and exemplary damages, constituting a limitation on liability.",
+      "confidence": "high"
+    },
+    {
+      "clause_type": "uncapped_liability",
+      "present": true,
+      "evidence": "EXCEPT WITH RESPECT TO THE INDEMNITY OBLIGATIONS IN SECTION 14, THE CONFIDENTIALITY OBLIGATIONS UNDER SECTION 16, AND THE YEAR 2000 COMPLIANCE OBLIGATIONS UNDER SECTION 20, NOTWITHSTANDING ANYTHING TO THE CONTRARY CONTAINED IN THIS AGREEMENT",
+      "reasoning": "The limitation of liability expressly carves out indemnity, confidentiality, and Y2K compliance obligations, leaving those uncapped.",
+      "confidence": "high"
+    },
+    {
+      "clause_type": "termination_for_convenience",
+      "present": false,
+      "evidence": "",
+      "reasoning": "Termination provisions in Section 11 all require cause: material breach, failure to reach mutual agreement, insolvency, or material ownership change. There is no right to terminate for convenience without cause.",
+      "confidence": "high"
+    },
+    {
+      "clause_type": "anti_assignment",
+      "present": true,
+      "evidence": "Except as provided in this Section, neither Party may assign its rights or obligations under this Agreement without the prior written consent of the other Party, which shall not be unreasonably withheld.",
+      "reasoning": "Section 24 restricts assignment absent prior written consent, subject to carve-outs.",
+      "confidence": "high"
+    },
+    {
+      "clause_type": "change_of_control",
+      "present": true,
+      "evidence": "Either party may terminate this Agreement upon 30 days written notice if      either Party's corporate structure has undergone a material ownership      change such that its corporate interests are then in conflict with the      corporate interests of the other Party; and",
+      "reasoning": "Section 11.2(c) provides a termination right triggered by a material ownership change, a change of control provision.",
+      "confidence": "high"
+    },
+    {
+      "clause_type": "exclusivity",
+      "present": true,
+      "evidence": "During the Term of the Agreement, and subject to the following requirements respecting Canadian content levels as set out in paragraphs 3(f), (g) and (h), HCI shall be the exclusive health content partner in the health section of the Sympatico web site",
+      "reasoning": "Section 9 grants HCI exclusivity as the health content partner within the defined section.",
+      "confidence": "high"
+    },
+    {
+      "clause_type": "non_compete",
+      "present": true,
+      "evidence": "HCI shall not either directly or indirectly license or deliver content to or carry on or be engaged with any other Canadian portal web site, being a Web site which aggregates and markets a variety of content directed to multiple communities of interest and which offers products,\n\ntools and services to a broad base of Canadian end users.",
+      "reasoning": "Section 9 restricts HCI from dealing with any competing Canadian portal, a genuine non-compete restriction on commercial behavior.",
+      "confidence": "high"
+    }
+  ]
+}
