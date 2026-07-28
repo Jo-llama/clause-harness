@@ -66,6 +66,9 @@ expose.
 Termination without cause, at a party's election, typically on notice. Distinct
 from termination on enumerated breach or trigger events, which is termination
 for cause and does *not* qualify.
+The right must permit termination of the agreement as a whole. A right to
+terminate a component, programme, or fund established under the agreement does
+not qualify.
 
 ### anti_assignment
 Restriction on assigning the agreement or rights under it, usually requiring the
@@ -75,10 +78,15 @@ counterparty's prior written consent.
 Rights arising on a merger, acquisition, or change in ownership of a party —
 commonly a right to terminate or a consent requirement. Not to be confused with
 term-and-renewal provisions.
+The change in ownership must be of a party to this agreement. Provisions
+triggered by a change in control of a third party (such as a customer or
+supplier) do not qualify.
 
 ### exclusivity
 An undertaking to deal exclusively with the counterparty, or a grant of
 exclusive rights within a defined field, territory, or channel.
+An undertaking expressly disclaimed or made subject to "no guarantee" is not a
+grant of exclusive rights and does not qualify.
 
 ### non_compete
 A restriction on competing with the counterparty. Restrictions on *use or

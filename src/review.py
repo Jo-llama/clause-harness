@@ -32,7 +32,7 @@ TAXONOMY = {
     ClauseType.TERMINATION_FOR_CONVENIENCE: (
         "Termination without cause, at a party's election, typically on "
         "notice. Distinct from termination on enumerated breach or trigger "
-        "events, which is termination for cause and does not qualify."
+        "events, which is termination for cause and does not qualify. The right must permit termination of the agreement as a whole. A right to terminate a component, programme, or fund established under the agreement does not qualify."
     ),
     ClauseType.ANTI_ASSIGNMENT: (
         "Restriction on assigning the agreement or rights under it, usually "
@@ -41,12 +41,13 @@ TAXONOMY = {
     ClauseType.CHANGE_OF_CONTROL: (
         "Rights arising on a merger, acquisition, or change in ownership of "
         "a party -- commonly a right to terminate or a consent requirement. "
-        "Not to be confused with term-and-renewal provisions."
+        "Not to be confused with term-and-renewal provisions. The change in ownership must be of a party to this agreement. Provisionstriggered by a change in control of a third party (such as a customer or supplier) do not qualify."
     ),
     ClauseType.EXCLUSIVITY: (
         "An undertaking to deal exclusively with the counterparty, or a "
         "grant of exclusive rights within a defined field, territory, or "
-        "channel."
+        "channel. An undertaking expressly disclaimed or made subject to "
+        '"no guarantee" is not a grant of exclusive rights and does not qualify.'
     ),
     ClauseType.NON_COMPETE: (
         "A restriction on competing with the counterparty. Restrictions on "
