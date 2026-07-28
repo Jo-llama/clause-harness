@@ -104,9 +104,22 @@ noise.
 
 The validators are not evenly matched across the two error types.
 
-**False positives** — a clause reported present that isn't there — are well
-defended. Trigger 2 requires the cited evidence to appear verbatim in the
-source, so a fabricated or altered citation is caught deterministically.
+**False positives** — a clause reported present that isn't there — are only
+partly defended. Trigger 2 requires the cited evidence to appear verbatim in
+the source, so a *fabricated or altered* citation is caught deterministically.
+But grounding only confirms the quote exists somewhere in the contract, not
+that it supports the conclusion drawn from it. A model can cite a completely
+real passage and still misapply the category to it, and trigger 2 has nothing
+to say about that.
+
+BERKELEYLIGHTS is a case in point: the model reported `change_of_control`
+present, citing a real, verbatim passage about a Change in Control of a
+*third-party customer*. The citation was genuine, so trigger 2 passed it, and
+the finding auto-passed. Per `TAXONOMY.md`, `change_of_control` requires the
+ownership change to be of a party to the agreement itself — a third party's
+change of control does not qualify. The citation was right; the interpretation
+was wrong. Trigger 2 checks evidence against the source, not against the
+taxonomy, so it cannot catch this class of error by construction.
 
 **False negatives** — a clause missed entirely — are harder. On `present:
 false` the `evidence` field is empty, so there is nothing for trigger 2 to
@@ -128,6 +141,18 @@ Consequence for metrics: **precision and recall are reported separately, never
 folded into a single accuracy figure.** They rest on different amounts of
 validation and conflating them would overstate how much of the output is
 actually checked.
+
+**A third outcome: unverifiable.** The `redacted_evidence` trigger (evidence
+containing `[***]`) is not measuring the same thing as the others. It fires
+because the *source document itself* redacts the relevant text, not because
+the model did anything wrong — the citation can be genuine and the `present`
+call can even agree with gold, and it will still escalate, because no one,
+model or human, can verify a redacted passage from the text alone. Counting
+that outcome as a "false alarm" would say the escalation was wasted; it
+wasn't — it's correctly reporting that the document doesn't support
+verification at that point, independent of whether the model happened to be
+right. `scripts/score_runs.py` reports this case as `unverifiable`, distinct
+from `false_alarms`.
 
 ## Metrics
 

@@ -67,8 +67,7 @@ Termination without cause, at a party's election, typically on notice. Distinct
 from termination on enumerated breach or trigger events, which is termination
 for cause and does *not* qualify.
 The right must permit termination of the agreement as a whole. A right to
-terminate a component, programme, or fund established under the agreement does
-not qualify.
+terminate a component, programme, or fund does not qualify.
 
 ### anti_assignment
 Restriction on assigning the agreement or rights under it, usually requiring the
@@ -79,8 +78,7 @@ Rights arising on a merger, acquisition, or change in ownership of a party —
 commonly a right to terminate or a consent requirement. Not to be confused with
 term-and-renewal provisions.
 The change in ownership must be of a party to this agreement. Provisions
-triggered by a change in control of a third party (such as a customer or
-supplier) do not qualify.
+triggered by a change in control of a third party do not qualify.
 
 ### exclusivity
 An undertaking to deal exclusively with the counterparty, or a grant of
@@ -125,6 +123,8 @@ Labels changed from CUAD, with reasons. Each override is also recorded in a
 | VIOLINMEMORYINC_12_12_2012 | `cap_on_liability` | present | *undecided* | Span is a waiver and release of claims, a distinct instrument from a limitation of liability. Defensible either way — decide and apply consistently. |
 | AULAMERICANUNITTRUST | `anti_assignment` | absent | present | The `governing_law` span itself contains "...and is assignable only upon the written...", so an anti-assignment provision is present but unlabelled. |
 | TELKOMSALTD_01_30_2003 | `termination_for_convenience` | present | *undecided* | Span reads as termination on enumerated events (for cause). Truncated in review — check full text before deciding. |
+| JOINTCORP_09_19_2014 | `exclusivity` | present | absent | Span expressly disclaims the undertaking ("we make no guarantee of any protected territory"); per the updated definition this does not qualify. |
+| JOINTCORP_09_19_2014 | `termination_for_convenience` | present | absent | Right to terminate applies only to the Ad Fund, a fund established under the agreement, not the agreement as a whole; per the updated definition this does not qualify. |
 
 ## Known data quirks
 

@@ -130,9 +130,19 @@ def main():
 
     report_set("Escalated set", escalated_rows)
     genuine_catches = sum(1 for r in escalated_rows if r["outcome"] in ("fp", "fn"))
-    false_alarms = sum(1 for r in escalated_rows if r["outcome"] in ("tp", "tn"))
+    unverifiable = sum(
+        1
+        for r in escalated_rows
+        if r["outcome"] in ("tp", "tn") and r["trigger"] == "redacted_evidence"
+    )
+    false_alarms = sum(
+        1
+        for r in escalated_rows
+        if r["outcome"] in ("tp", "tn") and r["trigger"] != "redacted_evidence"
+    )
     print(f"  genuine catches (model disagreed with gold): {genuine_catches}")
-    print(f"  false alarms (model agreed with gold, escalated anyway): {false_alarms}")
+    print(f"  unverifiable (source redacted; model happened to agree with gold): {unverifiable}")
+    print(f"  false alarms (model agreed with gold, escalated for a non-redaction reason): {false_alarms}")
     print()
 
     disagreements = [r for r in rows if r["outcome"] in ("fp", "fn")]
