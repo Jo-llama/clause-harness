@@ -1,6 +1,13 @@
 """
 Run the harness over a subset of the golden set and report validation outcomes.
 
+Each contract is extracted twice: pass A at temperature 0 (the primary,
+reported result) and pass B at a nonzero temperature (used only to detect
+disagreement -- trigger 4, pass_disagreement). Pass B reuses the same system
+prompt and contract text as pass A, so prompt caching keeps its input cost
+minimal. Both passes are persisted to runs/<doc_id>.json so escalations are
+auditable -- a reviewer can see what each pass said.
+
 Usage:
     python scripts/run_batch.py --limit 5
     python scripts/run_batch.py --limit 5 --doc-ids Healthcentral,Cardax,IbioInc
@@ -21,7 +28,15 @@ from review import GOLDEN_PATH, call_model
 from validate import validate
 
 RUNS_DIR = Path("runs")
-TRIGGERS = ["elided_evidence", "evidence_not_grounded", "low_confidence", "reasoning_contains_quote"]
+TRIGGERS = [
+    "elided_evidence",
+    "evidence_not_grounded",
+    "redacted_evidence",
+    "low_confidence",
+    "reasoning_contains_quote",
+    "pass_disagreement",
+]
+PASS_B_TEMPERATURE = 0.7
 
 
 def load_records(path: Path, limit: int, doc_id_prefixes: list[str] | None) -> list[dict]:
@@ -64,15 +79,28 @@ def main():
     elided_survivors = []
 
     for record in records:
-        result = call_model(client, record["source_text"])
-        if result is None:
+        result_a = call_model(client, record["source_text"], temperature=0.0)
+        if result_a is None:
             print(f"{record['doc_id']}: schema/parse failure after retry -- skipped")
             continue
-        result.doc_id = record["doc_id"]
+        result_a.doc_id = record["doc_id"]
 
-        (RUNS_DIR / f"{result.doc_id}.json").write_text(result.model_dump_json(indent=2))
+        result_b = call_model(client, record["source_text"], temperature=PASS_B_TEMPERATURE)
+        if result_b is not None:
+            result_b.doc_id = record["doc_id"]
 
-        verdicts = validate(result, record["source_text"])
+        (RUNS_DIR / f"{result_a.doc_id}.json").write_text(
+            json.dumps(
+                {
+                    "pass_a": result_a.model_dump(mode="json"),
+                    "pass_b": result_b.model_dump(mode="json") if result_b else None,
+                },
+                indent=2,
+                ensure_ascii=False,
+            )
+        )
+
+        verdicts = validate(result_a, record["source_text"], other=result_b)
         for v in verdicts:
             total_findings += 1
             if v.verdict == "auto_pass":
@@ -81,9 +109,9 @@ def main():
                 escalate_count += 1
                 trigger_counts[v.trigger] += 1
                 if v.trigger == "elided_evidence":
-                    elided_survivors.append((result.doc_id, v.finding.clause_type.value))
+                    elided_survivors.append((result_a.doc_id, v.finding.clause_type.value))
 
-        print(f"{result.doc_id}: {len(verdicts)} findings")
+        print(f"{result_a.doc_id}: {len(verdicts)} findings")
 
     print()
     print(f"{'total findings':<26} {total_findings:>6}")

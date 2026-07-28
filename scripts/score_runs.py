@@ -33,12 +33,35 @@ def load_golden() -> dict:
     return golden
 
 
-def load_runs() -> list[ReviewResult]:
+def load_runs() -> list[tuple]:
+    """Return (pass_a, pass_b) per run file. pass_b is None for legacy,
+    single-pass run files predating trigger 4."""
     results = []
     for path in sorted(RUNS_DIR.glob("*.json")):
         data = json.loads(path.read_text())
-        results.append(ReviewResult(**data))
+        if "pass_a" in data:
+            result_a = ReviewResult(**data["pass_a"])
+            result_b = ReviewResult(**data["pass_b"]) if data.get("pass_b") else None
+        else:
+            result_a = ReviewResult(**data)
+            result_b = None
+        results.append((result_a, result_b))
     return results
+
+
+TRIGGER_TIERS = {
+    "evidence_not_grounded": "confirmed",
+    "elided_evidence": "confirmed",
+    "reasoning_contains_quote": "confirmed",
+    "low_confidence": "suspect",
+    "pass_disagreement": "suspect",
+    "redacted_evidence": "unverifiable",
+}
+TIER_ORDER = ["confirmed", "suspect", "unverifiable"]
+
+
+def tier_for_trigger(trigger) -> str:
+    return TRIGGER_TIERS.get(trigger, "unknown")
 
 
 def classify(predicted: bool, gold: bool) -> str:
@@ -83,13 +106,13 @@ def main():
     rows = []
     missing_gold = []
 
-    for result in results:
-        gold_record = golden.get(result.doc_id)
+    for result_a, result_b in results:
+        gold_record = golden.get(result_a.doc_id)
         if gold_record is None:
-            missing_gold.append(result.doc_id)
+            missing_gold.append(result_a.doc_id)
             continue
 
-        verdicts = validate(result, gold_record["source_text"])
+        verdicts = validate(result_a, gold_record["source_text"], other=result_b)
 
         for v in verdicts:
             finding = v.finding
@@ -103,12 +126,13 @@ def main():
 
             rows.append(
                 {
-                    "doc_id": result.doc_id,
+                    "doc_id": result_a.doc_id,
                     "clause_type": clause_type,
                     "gold": gold_present,
                     "predicted": predicted_present,
                     "verdict": v.verdict,
                     "trigger": v.trigger,
+                    "tier": tier_for_trigger(v.trigger),
                     "outcome": classify(predicted_present, gold_present),
                 }
             )
@@ -143,6 +167,17 @@ def main():
     print(f"  genuine catches (model disagreed with gold): {genuine_catches}")
     print(f"  unverifiable (source redacted; model happened to agree with gold): {unverifiable}")
     print(f"  false alarms (model agreed with gold, escalated for a non-redaction reason): {false_alarms}")
+    print()
+
+    print("== Escalations by tier ==")
+    for tier in TIER_ORDER:
+        tier_rows = [r for r in escalated_rows if r["tier"] == tier]
+        print(f"{tier} ({len(tier_rows)}):")
+        if not tier_rows:
+            print("  none")
+            continue
+        for r in tier_rows:
+            print(f"  {r['doc_id']:<45} {r['clause_type']:<28} {r['trigger']}")
     print()
 
     disagreements = [r for r in rows if r["outcome"] in ("fp", "fn")]

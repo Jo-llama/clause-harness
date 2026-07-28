@@ -146,6 +146,22 @@ def test_evidence_with_mid_sentence_page_furniture_matches_stripped_source():
     assert verdicts[0].verdict == "auto_pass"
 
 
+def test_agreeing_passes_do_not_trigger_disagreement():
+    finding = make_finding()
+    other = make_finding()
+    verdict = validate_finding(finding, normalize(SOURCE), other_finding=other)
+    assert verdict.verdict == "auto_pass"
+    assert verdict.trigger is None
+
+
+def test_present_disagreement_between_passes_escalates():
+    finding = make_finding(present=False, evidence="")
+    other = make_finding(present=True)
+    verdict = validate_finding(finding, normalize(SOURCE), other_finding=other)
+    assert verdict.verdict == "escalate"
+    assert verdict.trigger == "pass_disagreement"
+
+
 def test_validate_runs_over_all_findings_in_result():
     good = make_finding()
     bad = make_finding(evidence="fabricated span not in source")

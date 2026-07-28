@@ -6,7 +6,12 @@ from pydantic import BaseModel
 from schema import Finding, ReviewResult, strip_furniture
 
 Trigger = Literal[
-    "elided_evidence", "evidence_not_grounded", "low_confidence", "reasoning_contains_quote", "redacted_evidence"
+    "elided_evidence",
+    "evidence_not_grounded",
+    "low_confidence",
+    "reasoning_contains_quote",
+    "redacted_evidence",
+    "pass_disagreement",
 ]
 
 QUOTE_PATTERNS = [
@@ -39,7 +44,9 @@ def reasoning_quotes_contract(reasoning: str, normalized_source: str) -> bool:
     return False
 
 
-def validate_finding(finding: Finding, normalized_source: str) -> FindingVerdict:
+def validate_finding(
+    finding: Finding, normalized_source: str, other_finding: Finding | None = None
+) -> FindingVerdict:
     if finding.present:
         if "..." in finding.evidence or "…" in finding.evidence:
             return FindingVerdict(finding=finding, verdict="escalate", trigger="elided_evidence")
@@ -51,9 +58,23 @@ def validate_finding(finding: Finding, normalized_source: str) -> FindingVerdict
         return FindingVerdict(finding=finding, verdict="escalate", trigger="low_confidence")
     if reasoning_quotes_contract(finding.reasoning, normalized_source):
         return FindingVerdict(finding=finding, verdict="escalate", trigger="reasoning_contains_quote")
+    # Suspect-tier: this escalates on disagreement between two independent
+    # passes, not on any defect detected in this pass's own output. Its real
+    # purpose is catching false negatives a single pass can't -- a confident,
+    # well-grounded "absent" that a second pass at nonzero temperature calls
+    # "present" is exactly the failure mode none of the checks above can see
+    # (see DESIGN.md, Asymmetry).
+    if other_finding is not None and finding.present != other_finding.present:
+        return FindingVerdict(finding=finding, verdict="escalate", trigger="pass_disagreement")
     return FindingVerdict(finding=finding, verdict="auto_pass")
 
 
-def validate(result: ReviewResult, source_text: str) -> list[FindingVerdict]:
+def validate(
+    result: ReviewResult, source_text: str, other: ReviewResult | None = None
+) -> list[FindingVerdict]:
     normalized_source = normalize(strip_furniture(source_text))
-    return [validate_finding(finding, normalized_source) for finding in result.findings]
+    other_by_clause = {f.clause_type: f for f in other.findings} if other else {}
+    return [
+        validate_finding(finding, normalized_source, other_by_clause.get(finding.clause_type))
+        for finding in result.findings
+    ]

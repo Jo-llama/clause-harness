@@ -101,14 +101,31 @@ def load_record(path: Path, doc_id_prefix: str | None = None) -> dict:
     raise SystemExit(f"no record matching {doc_id_prefix!r} in {path}")
 
 
-def call_model(client: anthropic.Anthropic, source_text: str) -> ReviewResult | None:
+def call_model(
+    client: anthropic.Anthropic, source_text: str, temperature: float = 0.0
+) -> ReviewResult | None:
     for attempt in range(PARSE_ATTEMPTS):
         try:
             response = client.messages.parse(
                 model=MODEL,
                 max_tokens=8192,
                 system=build_system_prompt(),
-                messages=[{"role": "user", "content": source_text}],
+                messages=[
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": source_text,
+                                # Cache breakpoint on the contract text so a
+                                # second pass over the same contract (see
+                                # trigger 4) only pays full input cost once.
+                                "cache_control": {"type": "ephemeral"},
+                            }
+                        ],
+                    }
+                ],
+                temperature=temperature,
                 output_format=ReviewResult,
             )
             return response.content[0].parsed_output
