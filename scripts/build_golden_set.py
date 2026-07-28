@@ -13,6 +13,7 @@ import json
 import random
 import re
 import sys
+import unicodedata
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
@@ -73,7 +74,7 @@ def extract_contract(entry: dict) -> dict | None:
         return None
 
     return {
-        "doc_id": entry["title"],
+        "doc_id": unicodedata.normalize("NFC", entry["title"]),
         "source_text": source_text,
         "labels": labels,
     }
@@ -83,25 +84,59 @@ def load_overrides(path: Path) -> list[dict]:
     """Hand-reviewed corrections to CUAD's labels. See TAXONOMY.md, Overrides."""
     if not path.exists():
         return []
+    overrides = []
     with path.open(encoding="utf-8") as f:
-        return [json.loads(line) for line in f if line.strip()]
+        for line in f:
+            if not line.strip():
+                continue
+            override = json.loads(line)
+            override["doc_id"] = unicodedata.normalize("NFC", override["doc_id"])
+            overrides.append(override)
+    return overrides
 
 
-def apply_overrides(records: list[dict], overrides: list[dict]) -> int:
-    """Apply overrides in place; return how many found a matching record."""
-    by_doc_id = {r["doc_id"]: r for r in records}
+def apply_overrides(
+    selected: list[dict], overrides: list[dict], known_doc_ids: set
+) -> tuple:
+    """Apply overrides in place. Returns (applied_count, skipped_doc_ids).
+
+    An override doc_id absent from CUAD entirely is a typo in the overrides
+    file and stops the build. An override doc_id that's a real CUAD contract
+    but wasn't drawn into this sample is reported back as skipped, not
+    silently dropped -- a documented legal judgement missing from the data
+    must be visible, not invisible.
+    """
+    by_doc_id = {r["doc_id"]: r for r in selected}
+    errors = []
+    skipped = []
     applied = 0
+
     for override in overrides:
-        record = by_doc_id.get(override["doc_id"])
+        doc_id = override["doc_id"]
+        clause_type = override["clause_type"]
+
+        if doc_id not in known_doc_ids:
+            errors.append(f"{doc_id!r}: no such doc_id in CUAD -- check for a typo")
+            continue
+
+        record = by_doc_id.get(doc_id)
         if record is None:
+            skipped.append(doc_id)
             continue
-        label = record["labels"].get(override["clause_type"])
+
+        label = record["labels"].get(clause_type)
         if label is None:
+            errors.append(f"{doc_id!r}: no such clause_type {clause_type!r} -- check for a typo")
             continue
+
         label["present"] = override["present"]
         label["notes"] = override["note"]
         applied += 1
-    return applied
+
+    if errors:
+        raise SystemExit(f"bad override(s) in {OVERRIDES}:\n" + "\n".join(f"  {e}" for e in errors))
+
+    return applied, skipped
 
 
 def verify(record: dict) -> list[str]:
@@ -122,6 +157,7 @@ def main() -> None:
     args = parser.parse_args()
 
     raw = json.loads(RAW.read_text(encoding="utf-8"))
+    known_doc_ids = {unicodedata.normalize("NFC", e["title"]) for e in raw["data"]}
     contracts = [c for c in (extract_contract(e) for e in raw["data"]) if c]
 
     random.seed(args.seed)
@@ -156,7 +192,7 @@ def main() -> None:
     selected.extend(leftover[: args.n - len(selected)])
 
     overrides = load_overrides(OVERRIDES)
-    overrides_applied = apply_overrides(selected, overrides)
+    overrides_applied, overrides_skipped = apply_overrides(selected, overrides, known_doc_ids)
 
     problems = [p for c in selected for p in verify(c)]
 
@@ -167,6 +203,8 @@ def main() -> None:
 
     print(f"wrote {len(selected)} contracts to {OUT}")
     print(f"applied {overrides_applied}/{len(overrides)} overrides from {OVERRIDES}")
+    for doc_id in overrides_skipped:
+        print(f"  skipped (valid CUAD doc_id, not drawn into this sample): {doc_id}")
     print(f"{'category':<32} {'present':>8} {'absent':>8}")
     for k in CATEGORIES:
         p = sum(c["labels"][k]["present"] for c in selected)
