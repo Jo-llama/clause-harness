@@ -1,11 +1,14 @@
 """
 Run the harness over a subset of the golden set and report validation outcomes.
 
-Each contract is extracted twice: pass A at temperature 0 (the primary,
-reported result) and pass B at a nonzero temperature (used only to detect
-disagreement -- trigger 4, pass_disagreement). Pass B reuses the same system
-prompt and contract text as pass A, so prompt caching keeps its input cost
-minimal. Both passes are persisted to runs/<doc_id>.json so escalations are
+Each contract is extracted twice: pass A with prompt variant "a" (the
+primary, reported result) and pass B with prompt variant "b" -- same
+definitions and schema, reworded and reordered to force an independent read
+(used only to detect disagreement -- trigger 4, pass_disagreement). Opus
+rejects a nonzero temperature, so independence comes from the prompt
+variant instead. Pass B reuses the same contract text as pass A, so prompt
+caching keeps its input cost minimal even though the system prompt differs.
+Both passes are persisted to runs/<doc_id>.json so escalations are
 auditable -- a reviewer can see what each pass said.
 
 Usage:
@@ -36,7 +39,6 @@ TRIGGERS = [
     "reasoning_contains_quote",
     "pass_disagreement",
 ]
-PASS_B_TEMPERATURE = 0.7
 
 
 def load_records(path: Path, limit: int, doc_id_prefixes: list[str] | None) -> list[dict]:
@@ -79,13 +81,13 @@ def main():
     elided_survivors = []
 
     for record in records:
-        result_a = call_model(client, record["source_text"], temperature=0.0)
+        result_a = call_model(client, record["source_text"], variant="a")
         if result_a is None:
             print(f"{record['doc_id']}: schema/parse failure after retry -- skipped")
             continue
         result_a.doc_id = record["doc_id"]
 
-        result_b = call_model(client, record["source_text"], temperature=PASS_B_TEMPERATURE)
+        result_b = call_model(client, record["source_text"], variant="b")
         if result_b is not None:
             result_b.doc_id = record["doc_id"]
 

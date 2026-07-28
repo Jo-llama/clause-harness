@@ -61,9 +61,10 @@ def validate_finding(
     # Suspect-tier: this escalates on disagreement between two independent
     # passes, not on any defect detected in this pass's own output. Its real
     # purpose is catching false negatives a single pass can't -- a confident,
-    # well-grounded "absent" that a second pass at nonzero temperature calls
-    # "present" is exactly the failure mode none of the checks above can see
-    # (see DESIGN.md, Asymmetry).
+    # well-grounded "absent" that an independently-reworded second pass (see
+    # review.py, build_system_prompt variant "b") calls "present" is exactly
+    # the failure mode none of the checks above can see (see DESIGN.md,
+    # Asymmetry).
     if other_finding is not None and finding.present != other_finding.present:
         return FindingVerdict(finding=finding, verdict="escalate", trigger="pass_disagreement")
     return FindingVerdict(finding=finding, verdict="auto_pass")

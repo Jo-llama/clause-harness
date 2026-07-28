@@ -62,34 +62,77 @@ TAXONOMY = {
 }
 
 
-def build_system_prompt() -> str:
-    definitions = "\n".join(f"- {ct.value}: {desc}" for ct, desc in TAXONOMY.items())
-    return f"""You are reviewing a commercial contract for the presence of eight clause types.
+# Shared verbatim across both prompt variants -- only the intro and the
+# present/absent framing sentence differ between "a" and "b" (see
+# build_system_prompt). Keeping these as constants, rather than duplicating
+# the text in each variant, makes byte-identity structural rather than a
+# matter of careful copy-pasting.
+LIABILITY_PAIR_NOTE = (
+    "cap_on_liability and uncapped_liability are two facts about one provision, not\n"
+    "competing labels. A single passage commonly establishes both the limitation and\n"
+    "the carve-outs from it -- the same span may serve as evidence for both findings."
+)
+
+VERBATIM_INSTRUCTION = (
+    "If present, quote the\n"
+    "evidence verbatim: copy the text exactly as it appears in the contract, do not\n"
+    "correct, shorten, paraphrase, or summarize it. If absent, leave evidence as an\n"
+    "empty string."
+)
+
+NO_QUOTE_IN_REASONING = (
+    "Do not quote contract text in reasoning. All quoted text belongs in evidence.\n"
+    "Describe your reasoning in your own words."
+)
+
+REDACTION_INSTRUCTION = (
+    "Contract text may contain [***] redactions. Do not infer clause content from a section heading whose body is redacted; \n"
+    "treat the evidence as unavailable and lower your confidence."
+)
+
+NO_ELISION_INSTRUCTION = (
+    'Quote one contiguous passage. Never use "..." or any other marker to join\n'
+    "separated text. If the relevant provisions are not contiguous,\n"
+    "quote the single most representative passage and describe the rest\n"
+    "in your reasoning."
+)
+
+CLOSING_INSTRUCTION = "Return exactly one finding per clause type -- eight findings total."
+
+
+def build_system_prompt(variant: str = "a") -> str:
+    """variant "a" is the reported pass. variant "b" asks for the same eight
+    findings under the same definitions, but reworded and reordered to force
+    an independent read for the pass_disagreement trigger -- see validate.py.
+    """
+    items = list(TAXONOMY.items())
+    if variant == "b":
+        items = list(reversed(items))
+    definitions = "\n".join(f"- {ct.value}: {desc}" for ct, desc in items)
+
+    if variant == "b":
+        intro = "Scan the following contract and report which of these eight clause types appear in it."
+        framing = "Scan the contract and report which of these clause types appear."
+    else:
+        intro = "You are reviewing a commercial contract for the presence of eight clause types."
+        framing = "For each clause type, decide whether it is present."
+
+    return f"""{intro}
 
 Clause definitions:
 {definitions}
 
-cap_on_liability and uncapped_liability are two facts about one provision, not
-competing labels. A single passage commonly establishes both the limitation and
-the carve-outs from it -- the same span may serve as evidence for both findings.
+{LIABILITY_PAIR_NOTE}
 
-For each clause type, decide whether it is present. If present, quote the
-evidence verbatim: copy the text exactly as it appears in the contract, do not
-correct, shorten, paraphrase, or summarize it. If absent, leave evidence as an
-empty string.
+{framing} {VERBATIM_INSTRUCTION}
 
-Do not quote contract text in reasoning. All quoted text belongs in evidence.
-Describe your reasoning in your own words.
+{NO_QUOTE_IN_REASONING}
 
-Contract text may contain [***] redactions. Do not infer clause content from a section heading whose body is redacted; 
-treat the evidence as unavailable and lower your confidence.
+{REDACTION_INSTRUCTION}
 
-Quote one contiguous passage. Never use "..." or any other marker to join
-separated text. If the relevant provisions are not contiguous,
-quote the single most representative passage and describe the rest
-in your reasoning.
+{NO_ELISION_INSTRUCTION}
 
-Return exactly one finding per clause type -- eight findings total."""
+{CLOSING_INSTRUCTION}"""
 
 
 def load_record(path: Path, doc_id_prefix: str | None = None) -> dict:
@@ -102,14 +145,18 @@ def load_record(path: Path, doc_id_prefix: str | None = None) -> dict:
 
 
 def call_model(
-    client: anthropic.Anthropic, source_text: str, temperature: float = 0.0
+    client: anthropic.Anthropic, source_text: str, variant: str = "a"
 ) -> ReviewResult | None:
+    # Opus 4.7+ rejects temperature/top_p/top_k with a 400 -- omitted
+    # entirely, not passed as 0. Pass B's independence comes from
+    # build_system_prompt's variant wording instead (see validate.py,
+    # pass_disagreement).
     for attempt in range(PARSE_ATTEMPTS):
         try:
             response = client.messages.parse(
                 model=MODEL,
                 max_tokens=8192,
-                system=build_system_prompt(),
+                system=build_system_prompt(variant),
                 messages=[
                     {
                         "role": "user",
@@ -125,7 +172,6 @@ def call_model(
                         ],
                     }
                 ],
-                temperature=temperature,
                 output_format=ReviewResult,
             )
             return response.content[0].parsed_output
