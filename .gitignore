@@ -4,5 +4,6 @@ __pycache__/
 *.pyc
 data/raw/
 runs/*.jsonl
+runs/*.json
 !runs/.gitkeep
 .DS_Store
