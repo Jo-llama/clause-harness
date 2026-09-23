@@ -113,8 +113,6 @@ numbers mean.
 Labels changed from CUAD, with reasons. Each override is also recorded in a
 `notes` field on the affected record in `data/golden.jsonl`.
 
-> **TODO (Jo):** confirm each of these before committing. They are flagged
-> candidates from the review pass, not yet applied.
 
 | Contract | Category | CUAD | Override | Reason |
 |---|---|---|---|---|
